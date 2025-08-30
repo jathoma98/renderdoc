@@ -321,6 +321,12 @@ void rdclog_flush()
 {
 }
 
+#ifdef JACOBTHOMAS_OUTPUT_ALL_STDERR
+static constexpr bool kJTLogAllStderr = true;
+#else
+static constexpr bool kJTLogAllStderr = false;
+#endif
+
 void rdclogprint_int(LogType type, const char *fullMsg, const char *msg)
 {
   static Threading::CriticalSection *lock = new Threading::CriticalSection();
@@ -337,7 +343,7 @@ void rdclogprint_int(LogType type, const char *fullMsg, const char *msg)
 #endif
 #if ENABLED(OUTPUT_LOG_TO_STDERR)
   // don't output debug messages to stdout/stderr
-  if(type != LogType::Debug && log_output_enabled)
+  if(kJTLogAllStderr || (type != LogType::Debug && log_output_enabled))
     OSUtility::WriteOutput(OSUtility::Output_StdErr, msg);
   else
 #endif

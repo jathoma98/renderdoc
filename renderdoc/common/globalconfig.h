@@ -195,9 +195,11 @@ enum
 #else
 
 #define OUTPUT_LOG_TO_STDOUT OPTION_OFF
-#define OUTPUT_LOG_TO_STDERR OPTION_OFF
+#define OUTPUT_LOG_TO_STDERR OPTION_ON
 
 #endif
+
+#define JACOBTHOMAS_OUTPUT_ALL_STDERR 1
 
 // logs go to debug output (visual studio output window)
 #define OUTPUT_LOG_TO_DEBUG_OUT OPTION_ON
