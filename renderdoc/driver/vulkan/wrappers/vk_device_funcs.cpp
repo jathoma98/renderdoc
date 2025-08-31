@@ -428,10 +428,15 @@ RDResult WrappedVulkan::Initialise(VkInitParams &params, uint64_t sectionVersion
   const char **layerscstr = new const char *[params.Layers.size()];
   for(size_t i = 0; i < params.Layers.size(); i++)
     layerscstr[i] = params.Layers[i].c_str();
-
-  const char **extscstr = new const char *[params.Extensions.size()];
+    
+  const char **extscstr = new const char *[params.Extensions.size() + 1];
   for(size_t i = 0; i < params.Extensions.size(); i++)
     extscstr[i] = params.Extensions[i].c_str();
+  
+  // [JT] Add mac compatibility
+  #if ENABLED(RDOC_APPLE)
+  extscstr[params.Extensions.size()] = VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME;
+  #endif
 
   VkInstanceCreateInfo instinfo = {
       VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -440,9 +445,14 @@ RDResult WrappedVulkan::Initialise(VkInitParams &params, uint64_t sectionVersion
       &renderdocAppInfo,
       (uint32_t)params.Layers.size(),
       layerscstr,
-      (uint32_t)params.Extensions.size(),
+      (uint32_t)params.Extensions.size() + 1,
       extscstr,
   };
+
+  // [JT] Add mac compatibility
+  #if ENABLED(RDOC_APPLE)
+  instinfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+  #endif
 
   if(params.APIVersion >= VK_API_VERSION_1_0)
     renderdocAppInfo.apiVersion = params.APIVersion;
@@ -821,6 +831,11 @@ VkResult WrappedVulkan::vkCreateInstance(const VkInstanceCreateInfo *pCreateInfo
       m_LayersEnabled[VkCheckLayer_unique_objects] = true;
     }
   }
+
+  // [JT] Portability bit for Mac
+  #if ENABLED(RDOC_APPLE)
+  modifiedCreateInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+  #endif
 
   // if we forced on API validation, it's also available
   m_LayersEnabled[VkCheckLayer_unique_objects] |= RenderDoc::Inst().GetCaptureOptions().apiValidation;
